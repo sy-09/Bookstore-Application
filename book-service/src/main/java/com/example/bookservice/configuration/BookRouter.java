@@ -10,6 +10,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.example.bookservice.handler.BookHandler;
 import com.example.bookservice.model.Constants;
 
+/**
+ * @author Shivam
+ * This class is used to route different requests to the appropriate methods.
+ */
 @Configuration
 public class BookRouter 
 {

@@ -26,6 +26,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+/**
+ * @author Shivam
+ *	To handle global exceptions.
+ * @Structure:
+ * 	@Methods;
+ * 		1. public Mono<Void> handle(ServerWebExchange exchange, Throwable ex): To route exceptions.
+ * 		2. private Mono<Void> handleInternalServerException(ServerHttpResponse serverResponse, Throwable ex)
+ * 		3. private Mono<Void> handleBadRequestException(ServerHttpResponse serverResponse, (BadRequestException) ex)
+ * 		4. private Mono<Void> handleUnprocessableEntityException(ServerHttpResponse serverResponse,
+ *																			UnprocessableEntityException ex)
+ *		5. private Mono<Void> handleDuplicateKeyException(ServerHttpResponse serverResponse,
+ *																				DuplicateKeyException exception)																
+ *		6. private byte[] getResponseAsByte(ExceptionResponse errorResponse): To write response as byte[].
+ *	@Fields:
+ *		1. ObjectMapper objectMapper: to write objects as byte[].
+ */
 @Slf4j
 @Component
 public class ExceptionHandler implements ErrorWebExceptionHandler
@@ -33,6 +49,9 @@ public class ExceptionHandler implements ErrorWebExceptionHandler
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	/**
+	 * This method route exception to appropriate handler.
+	 */
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange, Throwable ex)
 	{
@@ -48,7 +67,19 @@ public class ExceptionHandler implements ErrorWebExceptionHandler
 		else
 			return this.handleInternalServerException(serverResponse,ex);
 	}
-
+	
+	/**
+	 * Handle Internal Server Exception.
+	 * @param serverResponse
+	 * @param ex
+	 * 	@Structure:
+	 * 		1. Make ExceptionResponse
+	 * 		2. Call getResponseAsByte to get ExceptionResponse in byte[].
+	 * 		3. Set @status: 500
+	 * 		4. Inject response byte array in server response.
+	 * 		5. return serverResponse.
+	 * @return
+	 */
 	private Mono<Void> handleInternalServerException(ServerHttpResponse serverResponse, Throwable ex)
 	{
 		log.error("@Book-Service:: Internal Server Error has occurred");
@@ -68,7 +99,19 @@ public class ExceptionHandler implements ErrorWebExceptionHandler
 		
 		return serverResponse.writeWith(Mono.just(responseData));
 	}
-
+	
+	/**
+	 * Handle Unprocessable Entity Exception.
+	 * @param serverResponse
+	 * @param ex
+	 * 	@Structure:
+	 * 		1. Make ExceptionResponse
+	 * 		2. Call getResponseAsByte to get ExceptionResponse in byte[].
+	 * 		3. Set @status: 422
+	 * 		4. Inject response byte array in server response.
+	 * 		5. return serverResponse.
+	 * @return
+	 */
 	private Mono<Void> handleUnprocessableEntityException(ServerHttpResponse serverResponse,
 																			UnprocessableEntityException ex) 
 	{
@@ -87,7 +130,20 @@ public class ExceptionHandler implements ErrorWebExceptionHandler
 		
 		return serverResponse.writeWith(Mono.just(responseMessage));
 	}
-
+	
+	/**
+	 * Handle Bad Request Exception.
+	 * @param serverResponse
+	 * @param ex
+	 * 	@Structure:
+	 * 		1. Get error messages from exceptions.
+	 * 		2. Make ExceptionResponse
+	 * 		3. Call getResponseAsByte to get ExceptionResponse in byte[].
+	 * 		4. Set @status: 400
+	 * 		5. Inject response byte array in server response.
+	 * 		6. return serverResponse.
+	 * @return
+	 */
 	private Mono<Void> handleBadrequestException(ServerHttpResponse serverResponse, BadRequestException ex)
 	{
 		log.error("@Book-Service:: Constraint Violation Exception has occurred");
@@ -109,6 +165,18 @@ public class ExceptionHandler implements ErrorWebExceptionHandler
 		return serverResponse.writeWith(Mono.just(responseData));
 	}
 	
+	/**
+	 * Handle Duplicate Key Exception.
+	 * @param serverResponse
+	 * @param ex
+	 * 	@Structure:
+	 * 		1. Make ExceptionResponse
+	 * 		2. Call getResponseAsByte to get ExceptionResponse in byte[].
+	 * 		3. Set @status: 400
+	 * 		4. Inject response byte array in server response.
+	 * 		5. return serverResponse.
+	 * @return
+	 */
 	private Mono<Void> handleDuplicateKeyException(ServerHttpResponse serverResponse,DuplicateKeyException exception)
 	{
 		log.error("@Book-Service:: DuplicateKeyException has occurred");
@@ -127,6 +195,11 @@ public class ExceptionHandler implements ErrorWebExceptionHandler
 		return serverResponse.writeWith(Mono.just(responseData));
 	}
 	
+	/**
+	 * To convert object to byte array.
+	 * @param errorResponse
+	 * @return byte[]
+	 */
 	private byte[] getResponseAsByte(ExceptionResponse errorResponse)
 	{
 		try 
