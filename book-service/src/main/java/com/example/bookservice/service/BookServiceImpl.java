@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.bookservice.dto.BookDto;
-import com.example.bookservice.dto.UpdateDto;
 import com.example.bookservice.exception.UnprocessableEntityException;
 import com.example.bookservice.mapper.CustomObjectMapper;
 import com.example.bookservice.model.Book;
@@ -23,8 +22,7 @@ import reactor.core.publisher.Mono;
  * 		2. public Mono<ServerResponse> findByBookName(ServerRequest request): to find book by book name.
  * 		3. public Mono<ServerResponse> findByAuthorName(ServerRequest request): to find book by author name.
  * 		4. public Mono<ServerResponse> findByIsbn(ServerRequest request): find book by ISBN.
- * 		5. public Mono<ServerResponse> updateBook(ServerRequest request): to update a book.
- * 		6. public Mono<ServerResponse> deleteBook(ServerRequest request): to delete book by ISBN.
+ * 		5. public Mono<ServerResponse> deleteBook(ServerRequest request): to delete book by ISBN.
  * 	@Fields:
  * 		1. private BookRepository bookRepository: To communicate with book repository.
  *		2. private CustomObjectMapper mapper: To map different objects.
@@ -108,32 +106,7 @@ public class BookServiceImpl implements BookService
 									new UnprocessableEntityException(Constants.UNPROCESSALE_EXCEPTION_MESSAGE+isbn)))
 							.flatMap(book -> bookRepository.delete(book));
 	}
-	
-	/**
-	 * To update book.
-	 * @Structure:
-	 * 	1. Call repository find by ISBN method.
-	 * 	2. If empty response:
-	 * 		throw UnprocessableEntityException
-	 * 	3. Update properties.
-	 * 	4. Map Book to BookDto.
-	 * 	5. @return Mono<BookDto>
-	 */
-	@Override
-	public Mono<BookDto> updateBook(UpdateDto updateDto,String isbn)
-	{
-		return bookRepository.findByIsbn(isbn)
-							.switchIfEmpty(Mono.error(
-									new UnprocessableEntityException(Constants.UNPROCESSALE_EXCEPTION_MESSAGE+isbn)))
-							.flatMap(book -> {
-								book.setBookName(updateDto.getBookName());
-								book.setPrice(updateDto.getPrice());
-								book.setAuthor(updateDto.getAuthor());
-								return bookRepository.save(book);
-							})
-							.map(book -> mapper.bookDtoFromBook(book));
-	}
-	
+		
 	/**
 	 * To find book by book name.
 	 * @Structure:

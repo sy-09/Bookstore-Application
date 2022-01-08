@@ -14,7 +14,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.example.bookservice.dto.BookDto;
-import com.example.bookservice.dto.UpdateDto;
 import com.example.bookservice.exception.BadRequestException;
 import com.example.bookservice.service.BookService;
 
@@ -29,9 +28,8 @@ import reactor.core.publisher.Mono;
  * 		2. public Mono<ServerResponse> findByBookName(ServerRequest request): to find book by book name.
  * 		3. public Mono<ServerResponse> findByAuthorName(ServerRequest request): to find book by author name.
  * 		4. public Mono<ServerResponse> findByIsbn(ServerRequest request): find book by ISBN.
- * 		5. public Mono<ServerResponse> updateBook(ServerRequest request): to update a book.
- * 		6. public Mono<ServerResponse> deleteBook(ServerRequest request): to delete book by ISBN.
- * 		7. private void validate(BookDto bookDto): to validate book object.
+ * 		5. public Mono<ServerResponse> deleteBook(ServerRequest request): to delete book by ISBN.
+ * 		6. private void validate(BookDto bookDto): to validate book object.
  * 	@Fields:
  * 		1. BookService bookService: BookService object to call service layer methods.
  * 		2. Validator validator: Javax validator object to validate book object.
@@ -111,22 +109,6 @@ public class BookHandler
 	/**
 	 * @param request
 	 * @Structure:
-	 * 	1. Get UpdateDto object.
-	 * 	2. Validate object.
-	 * 	3. Call service layer method.
-	 * 	4. @return server response with updated bookDto object.
-	 */
-	public Mono<ServerResponse> updateBook(ServerRequest request)
-	{
-		return request.bodyToMono(UpdateDto.class)
-					.doOnNext(this::validate)
-					.flatMap(updateDto -> bookService.updateBook(updateDto, request.pathVariable("isbn")))
-					.flatMap(book -> ServerResponse.ok().bodyValue(book));
-	}
-	
-	/**
-	 * @param request
-	 * @Structure:
 	 * 	1. Get path variable.
 	 * 	2. Call service layer method.
 	 * 	@return server response with bookDto object.
@@ -156,26 +138,5 @@ public class BookHandler
 											.collect(Collectors.toList());
 			throw new BadRequestException(errorMessages);
 		}
-	}
-	
-	/**
-	 * Validate UpdateDto
-	 * @param updateDto
-	 * @Structure:
-	 * 	1. Validate updateDto.
-	 * 	2. If Set<ConstraintViolation<UpdateDto>> has size > 0
-	 * 		2.1 Extract violation messages.
-	 * 		2.2 throw BadRequestException(violation messages)
-	 */
-	private void validate(UpdateDto updateDto) 
-	{
-		Set<ConstraintViolation<UpdateDto>> violation = validator.validate(updateDto);
-		if(!violation.isEmpty())
-		{
-			List<String> errorMessages = violation.parallelStream()
-											.map(ConstraintViolation::getMessage)
-											.collect(Collectors.toList());
-			throw new BadRequestException(errorMessages);
-		}
-	}
+	}	
 }
